@@ -7,14 +7,16 @@ import api_client from "../API/client_api"
 import photo from "../img/perfil.jpg"
 
 //Icons 
-import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
+import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdLocalGasStation } from "react-icons/md"
 
 //Components
 import Dropdown from "../components/Dropdown"
 
 export default function Home() {
 
+  const [dropdown, setDropdown] = useState(false)
   const [userApi, setUserApi] = useState([])
+  const [localUsers, setLocalUsers] = useState([])
   const user = [
     {
       name: "Carlos",
@@ -30,10 +32,16 @@ export default function Home() {
   function nextProfile() {
     api_client.get(``).then((res) => {
       setUserApi(res.data.results[0])
-      console.log(res.data.results[0])
     }).catch((err) => {
       console.log(err)
     })
+  }
+
+  const follow = () => {
+    let array = localUsers
+    array.push(userApi)
+    setLocalUsers(array)
+    localStorage.setItem("users", JSON.stringify(localUsers))
   }
 
   return (
@@ -42,7 +50,10 @@ export default function Home() {
         <div className="bg-purple-600 h-1/3">
           <div className="flex flex-row justify-between h-14 border-b-2 border-purple-700 shadow-md md:px-36 xsm:px-4 text-white items-center">
             <p className="text-2xl ">Usuários_como.eu</p>
-            <button className="flex items-center text-xl">Seguindo <MdKeyboardArrowUp size={25} /></button>
+            <button onClick={() => {dropdown ? setDropdown(false) : setDropdown(true)}} className="flex items-center text-xl">
+              Seguindo 
+              { dropdown ? <MdKeyboardArrowUp size={25} /> : <MdKeyboardArrowDown size={25} /> }
+            </button>
           </div>
           <div className="md:mx-36 xsm:mx-4 mt-5">
             <p className="md:text-4xl xsm:text-2xl text-center text-white">Encontre novos usuários como você</p>
@@ -59,7 +70,7 @@ export default function Home() {
               <div className="xsm:flex w-full xsm:flex-col items-center justify-center md:grid md:grid-cols-3 xsm:mt-5 md:mt-0">
                 {userApi?.name ?
                   <div className="text-white text-center col-start-2">
-                    <button className="bg-blue-600 hover:opacity-90 w-36 h-10 rounded-md ">Curtir</button>
+                    <button onClick={() => follow()} className="bg-blue-600 hover:opacity-90 w-36 h-10 rounded-md ">Curtir</button>
                   </div>
                   : <div className="text-white flex items-center justify-center col-start-2">
                     <p className="bg-green-600 flex w-36 h-10 rounded-md  items-center justify-center">Meu perfil</p>
@@ -116,8 +127,12 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="mx-36 pb-20">
+          <p className="text-2xl">Sugestões para você</p>
+        </div>
       </div>
-      <Dropdown user={userApi} />
+      { dropdown ? <Dropdown /> : null }
+      
     </>
   )
 }
