@@ -7,16 +7,19 @@ import api_client from "../API/client_api"
 import photo from "../img/perfil.jpg"
 
 //Icons 
-import { MdKeyboardArrowDown, MdKeyboardArrowUp, MdLocalGasStation } from "react-icons/md"
+import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
 
 //Components
 import Dropdown from "../components/Dropdown"
+import Slide from "../components/Slide"
 
 export default function Home() {
 
+  const [button, setButton] = useState(false)
   const [dropdown, setDropdown] = useState(false)
   const [userApi, setUserApi] = useState([])
-  const [localUsers, setLocalUsers] = useState([])
+  const [followUsers, setFollowUsers] = useState(JSON.parse(localStorage.getItem('followUsers')) || [])
+  const [nextUsers, setNextUsers] = useState(JSON.parse(localStorage.getItem(`nextUsers`)) || [])
   const user = [
     {
       name: "Carlos",
@@ -29,19 +32,49 @@ export default function Home() {
     }
   ]
 
-  function nextProfile() {
+  const nextProfile = () => {
+
     api_client.get(``).then((res) => {
       setUserApi(res.data.results[0])
+      setButton(false)
+      console.log(res.data.results[0])
     }).catch((err) => {
       console.log(err)
     })
+
+    if (nextUsers?.length > 5) {
+      let array = nextUsers
+      array.shift()
+      array.push(userApi)
+      setNextUsers(array)
+    } else {
+      let arraylocal = nextUsers
+      arraylocal.push(userApi)
+      setNextUsers(arraylocal)
+    }
+    localStorage.setItem("nextUsers", JSON.stringify(nextUsers)) 
   }
 
+  console.log(followUsers);
   const follow = () => {
-    let array = localUsers
-    array.push(userApi)
-    setLocalUsers(array)
-    localStorage.setItem("users", JSON.stringify(localUsers))
+    if (nextUsers?.length > 5) {
+      let array = followUsers
+      array.shift()
+      array.push(userApi)
+      setFollowUsers(array)
+    } else {
+      let array = followUsers
+      array.push(userApi)
+      setFollowUsers(array)
+    }
+    localStorage.setItem("followUsers", JSON.stringify(followUsers))
+    setButton(true)
+  }
+
+  const unfollow = (user) => {
+    let array = followUsers
+    
+    console.log(array.filter((item) => item?.cell !== user?.cell))
   }
 
   return (
@@ -50,9 +83,8 @@ export default function Home() {
         <div className="bg-purple-600 h-1/3">
           <div className="flex flex-row justify-between h-14 border-b-2 border-purple-700 shadow-md md:px-36 xsm:px-4 text-white items-center">
             <p className="text-2xl ">Usuários_como.eu</p>
-            <button onClick={() => {dropdown ? setDropdown(false) : setDropdown(true)}} className="flex items-center text-xl">
-              Seguindo 
-              { dropdown ? <MdKeyboardArrowUp size={25} /> : <MdKeyboardArrowDown size={25} /> }
+            <button onClick={() => { dropdown ? setDropdown(false) : setDropdown(true) }} className="flex items-center text-xl">
+              Seguindo {dropdown ? <MdKeyboardArrowUp size={25} /> : <MdKeyboardArrowDown size={25} />}
             </button>
           </div>
           <div className="md:mx-36 xsm:mx-4 mt-5">
@@ -60,7 +92,7 @@ export default function Home() {
           </div>
         </div>
         <div className="md:mx-36 xsm:mx-4 h-2/3 -mt-20">
-          <div className="flex flex-col h-2/3 border-4">
+          <div className="flex flex-col h-2/3 border-2 rounded-md shadow-lg">
             <div className="bg-cover h-1/2 flex items-center justify-center" style={{ backgroundImage: `url(${userApi?.picture?.large ? userApi?.picture?.large : photo}` }} >
               <div className="rounded-full -mb-10">
                 <img className="rounded-full md:h-52 md:w-52 xsm:h-40 xsm:w-40" src={userApi?.picture?.large ? userApi?.picture?.large : photo} alt="foto" />
@@ -70,7 +102,7 @@ export default function Home() {
               <div className="xsm:flex w-full xsm:flex-col items-center justify-center md:grid md:grid-cols-3 xsm:mt-5 md:mt-0">
                 {userApi?.name ?
                   <div className="text-white text-center col-start-2">
-                    <button onClick={() => follow()} className="bg-blue-600 hover:opacity-90 w-36 h-10 rounded-md ">Curtir</button>
+                    <button onClick={() => follow()} className={`hover:opacity-90 w-36 h-10 rounded-md ${button ? `bg-red-600` : `bg-blue-600`  }`}>{button ? 'Unfollow' : 'Follow'}</button>
                   </div>
                   : <div className="text-white flex items-center justify-center col-start-2">
                     <p className="bg-green-600 flex w-36 h-10 rounded-md  items-center justify-center">Meu perfil</p>
@@ -89,7 +121,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex md:flex-row xsm:flex-col md:h-1/3 pt-2">
-            <div className="md:w-1/2 xsm:w-full md:mr-1 border-4 xsm:h-40">
+            <div className="md:w-1/2 xsm:w-full md:mr-1 border-2 rounded-md shadow-md xsm:h-40">
               <div className="h-2/3">
                 <p className="m-2 text-lg font-bold">Informações pessoais</p>
                 <div className="flex gap-x-2 ml-2">
@@ -107,7 +139,7 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            <div className=" md:w-1/2 xsm:w-full border-4 md:mt-0 xsm:mt-2 xsm:h-40">
+            <div className=" md:w-1/2 xsm:w-full border-2 shadow-md md:mt-0 xsm:mt-2 xsm:h-40">
               <div className="h-2/3 ">
                 <p className="m-2 text-lg font-bold ">Informações de contato</p>
                 <div className="flex gap-x-2 ml-2">
@@ -127,12 +159,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="mx-36 pb-20">
+        <div className="mx-36 pt-6 pb-20">
           <p className="text-2xl">Sugestões para você</p>
+          <div className="pt-3 flex flex-row gap-x-4">
+            <Slide user={userApi} />
+          </div>
         </div>
       </div>
-      { dropdown ? <Dropdown /> : null }
-      
+      {dropdown ? <Dropdown unfollow={unfollow} /> : null}
     </>
   )
 }
