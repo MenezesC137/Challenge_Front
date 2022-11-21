@@ -42,13 +42,13 @@ export default function Home() {
       console.log(err)
     })
 
-    if (nextUsers?.length > 5) {
+    if (nextUsers?.length < 5) {
       let array = nextUsers
-      array.shift()
       array.push(userApi)
       setNextUsers(array)
     } else {
       let arraylocal = nextUsers
+      arraylocal.shift()
       arraylocal.push(userApi)
       setNextUsers(arraylocal)
     }
@@ -56,24 +56,35 @@ export default function Home() {
   }
 
   const follow = () => {
-    if (nextUsers?.length > 5) {
+    if (nextUsers?.length < 5) {
       let array = followUsers
       array.push(userApi)
       setFollowUsers(array)
     } else {
-      let array = followUsers
-      array.shift()
-      array.push(userApi)
-      setFollowUsers(array)
+      let arrayLocal = followUsers
+      arrayLocal.shift()
+      arrayLocal.push(userApi)
+      setFollowUsers(arrayLocal)
     }
     localStorage.setItem("followUsers", JSON.stringify(followUsers))
     setButton(true)
   }
 
-  const unfollow = (user) => {
+ 
+
+  const unfollow = () => {
+
     let array = followUsers
 
-    console.log(array.filter((item) => item?.cell !== user?.cell))
+    
+    console.log( array.filter((item) => item?.email == followUsers?.email ) )
+    
+    
+    setFollowUsers(array)
+
+    //array = array.filter(item =>  JSON.stringify(item?.email) == 'iiris.wirkkala@example.com' )
+
+
   }
 
   return (
