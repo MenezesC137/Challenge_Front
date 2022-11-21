@@ -52,18 +52,17 @@ export default function Home() {
       arraylocal.push(userApi)
       setNextUsers(arraylocal)
     }
-    localStorage.setItem("nextUsers", JSON.stringify(nextUsers)) 
+    localStorage.setItem("nextUsers", JSON.stringify(nextUsers))
   }
 
-  console.log(followUsers);
   const follow = () => {
     if (nextUsers?.length > 5) {
       let array = followUsers
-      array.shift()
       array.push(userApi)
       setFollowUsers(array)
     } else {
       let array = followUsers
+      array.shift()
       array.push(userApi)
       setFollowUsers(array)
     }
@@ -73,7 +72,7 @@ export default function Home() {
 
   const unfollow = (user) => {
     let array = followUsers
-    
+
     console.log(array.filter((item) => item?.cell !== user?.cell))
   }
 
@@ -102,7 +101,7 @@ export default function Home() {
               <div className="xsm:flex w-full xsm:flex-col items-center justify-center md:grid md:grid-cols-3 xsm:mt-5 md:mt-0">
                 {userApi?.name ?
                   <div className="text-white text-center col-start-2">
-                    <button onClick={() => follow()} className={`hover:opacity-90 w-36 h-10 rounded-md ${button ? `bg-red-600` : `bg-blue-600`  }`}>{button ? 'Unfollow' : 'Follow'}</button>
+                    <button onClick={() => follow()} className={`hover:opacity-90 w-36 h-10 rounded-md ${button ? `bg-red-600` : `bg-blue-600`}`}>{button ? 'Unfollow' : 'Follow'}</button>
                   </div>
                   : <div className="text-white flex items-center justify-center col-start-2">
                     <p className="bg-green-600 flex w-36 h-10 rounded-md  items-center justify-center">Meu perfil</p>
@@ -158,11 +157,11 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
-        <div className="mx-36 pt-6 pb-20">
-          <p className="text-2xl">Sugestões para você</p>
-          <div className="pt-3 flex flex-row gap-x-4">
-            <Slide user={userApi} />
+          <div className="pt-6 pb-20 w-full xsm:max-w-sm md:max-w-none ">
+            <p className="text-2xl">Sugestões para você</p>
+            <div className="pt-3 flex flex-row gap-x-4 snap-mandatory snap-x overflow-scroll">
+              <Slide user={userApi} />
+            </div>
           </div>
         </div>
       </div>

@@ -4,10 +4,11 @@ export default function Slide() {
 
   const [users] = useState(localStorage.getItem("nextUsers") ? JSON.parse(localStorage.getItem("nextUsers")) : [])
   users.shift()
+
   return (
-    <>
+    <div className="flex gap-x-2">
       {users?.map((user) => (
-        <div className="w-60 h-72 border-2 rounded-md shadow-xl" key={user?.login?.username}>
+        <div className="w-60 h-72 border-2 rounded-md shadow-x snap-start " key={user?.login?.username}>
           <div className="flex items-start pt-3 justify-center h-1/3">
             <img src={user?.picture?.large} alt="Foto do perfil" className="w-28 h-28 rounded-full" />
           </div>
@@ -27,7 +28,8 @@ export default function Slide() {
             </div>
           </div>
         </div>
+
       ))}
-    </>
+    </div>
   )
 }
