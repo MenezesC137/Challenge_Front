@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 //Dependencies
 import api_client from "../API/client_api"
@@ -18,72 +18,36 @@ export default function Home() {
   const [button, setButton] = useState(false)
   const [dropdown, setDropdown] = useState(false)
   const [userApi, setUserApi] = useState([])
-  const [followUsers, setFollowUsers] = useState(JSON.parse(localStorage.getItem('followUsers')) || [])
-  const [nextUsers, setNextUsers] = useState(JSON.parse(localStorage.getItem(`nextUsers`)) || [])
-  const user = [
-    {
-      name: "Carlos",
-      lastName: "Santos",
-      age: 22,
-      city: "Santos",
-      country: "Brasil",
-      email: 'iamcarloseduardo@hotmail.com',
-      cell: '(13) 99777-7777',
-    }
-  ]
+  const [followUsers, setFollowUsers] = useState([])
+  const [nextUsers, setNextUsers] = useState([])
+
+  const random = Math.random() * 100 | 0
+
+  useEffect(() => {
+    api_client.get('/users')
+      .then(response => {
+        console.log(response.data)
+        setUserApi(response.data)
+        setNextUsers(response.data[0])
+      })
+      .catch(error => {
+        console.log(error)
+      })
+  }, [])
 
   const nextProfile = () => {
-
-    api_client.get(``).then((res) => {
-      setUserApi(res.data.results[0])
-      setButton(false)
-      console.log(res.data.results[0])
-    }).catch((err) => {
-      console.log(err)
-    })
-
-    if (nextUsers?.length < 5) {
-      let array = nextUsers
-      array.push(userApi)
-      setNextUsers(array)
-    } else {
-      let arraylocal = nextUsers
-      arraylocal.shift()
-      arraylocal.push(userApi)
-      setNextUsers(arraylocal)
-    }
-    localStorage.setItem("nextUsers", JSON.stringify(nextUsers))
+    
+    const next = userApi[random]
+    setNextUsers(next)
   }
 
   const follow = () => {
-    if (nextUsers?.length < 5) {
-      let array = followUsers
-      array.push(userApi)
-      setFollowUsers(array)
-    } else {
-      let arrayLocal = followUsers
-      arrayLocal.shift()
-      arrayLocal.push(userApi)
-      setFollowUsers(arrayLocal)
-    }
-    localStorage.setItem("followUsers", JSON.stringify(followUsers))
-    setButton(true)
+    setFollowUsers(nextUsers)    
   }
 
- 
+  console.log(nextUsers?.id)
 
   const unfollow = () => {
-
-    let array = followUsers
-
-    
-    console.log( array.filter((item) => item?.email == followUsers?.email ) )
-    
-    
-    setFollowUsers(array)
-
-    //array = array.filter(item =>  JSON.stringify(item?.email) == 'iiris.wirkkala@example.com' )
-
 
   }
 
@@ -103,14 +67,15 @@ export default function Home() {
         </div>
         <div className="md:mx-36 xsm:mx-4 h-2/3 -mt-20">
           <div className="flex flex-col h-2/3 border-2 rounded-md shadow-lg">
-            <div className="bg-cover h-1/2 flex items-center justify-center" style={{ backgroundImage: `url(${userApi?.picture?.large ? userApi?.picture?.large : photo}` }} >
+            <div className="bg-cover bg-center h-1/2 flex items-center justify-center" style={{ backgroundImage: `url(${nextUsers?.photo}` }} >
               <div className="rounded-full -mb-10">
-                <img className="rounded-full md:h-52 md:w-52 xsm:h-40 xsm:w-40" src={userApi?.picture?.large ? userApi?.picture?.large : photo} alt="foto" />
+                <img className="rounded-full md:h-52 md:w-52 xsm:h-40 xsm:w-40" src={nextUsers?.photo} alt="foto" />
               </div>
             </div>
             <div className="flex flex-col items-center md:mt-12 h-1/2 md:gap-y-2">
               <div className="xsm:flex w-full xsm:flex-col items-center justify-center md:grid md:grid-cols-3 xsm:mt-5 md:mt-0">
-                {userApi?.name ?
+                {console.log(nextUsers)}
+                {nextUsers?.id !== 1 ?
                   <div className="text-white text-center col-start-2">
                     <button onClick={() => follow()} className={`hover:opacity-90 w-36 h-10 rounded-md ${button ? `bg-red-600` : `bg-blue-600`}`}>{button ? 'Unfollow' : 'Follow'}</button>
                   </div>
@@ -123,10 +88,10 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <p className="text-2xl font-bold">{userApi?.name ? userApi?.name?.first : user[0].name} {userApi?.name ? userApi?.name?.last : user[0].lastName}</p>
+                <p className="text-2xl font-bold">{nextUsers?.name} </p>
               </div>
               <div>
-                <p className="text-xl">{userApi?.location ? userApi?.location?.city : user[0].city}, {userApi?.location ? userApi?.location?.country : user[0].country}</p>
+                <p className="text-xl">{nextUsers?.city} {nextUsers?.state}, {nextUsers?.country}</p>
               </div>
             </div>
           </div>
@@ -136,11 +101,11 @@ export default function Home() {
                 <p className="m-2 text-lg font-bold">Informações pessoais</p>
                 <div className="flex gap-x-2 ml-2">
                   <p>Nacionalidade: </p>
-                  <p>{userApi?.location ? userApi?.location?.country : user[0].country}</p>
+                  <p>{nextUsers?.country}</p>
                 </div>
                 <div className="flex gap-x-2 ml-2">
                   <p>Idade: </p>
-                  <p>{userApi?.dob ? userApi?.dob?.age : user[0].age}</p>
+                  <p>{nextUsers?.age}</p>
                 </div>
               </div>
               <div className="flex items-center justify-center pl-2 border-t-2 h-1/3">
@@ -154,11 +119,11 @@ export default function Home() {
                 <p className="m-2 text-lg font-bold ">Informações de contato</p>
                 <div className="flex gap-x-2 ml-2">
                   <p>Telefone: </p>
-                  <p>{userApi?.cell ? userApi?.cell : user[0].cell}</p>
+                  <p>{nextUsers?.phone}</p>
                 </div>
                 <div className="flex  gap-x-2 ml-2">
                   <p>E-mail: </p>
-                  <p>{userApi?.email ? userApi?.email : user[0].email}</p>
+                  <p>{nextUsers?.email}</p>
                 </div>
               </div>
               <div className="flex items-center justify-center pl-2 border-t-2 h-1/3">
