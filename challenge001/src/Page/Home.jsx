@@ -3,9 +3,6 @@ import React, { useEffect, useState } from "react"
 //Dependencies
 import api_client from "../API/client_api"
 
-//Image
-import photo from "../img/perfil.jpg"
-
 //Icons 
 import { MdKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md"
 
@@ -20,13 +17,12 @@ export default function Home() {
   const [userApi, setUserApi] = useState([])
   const [followUsers, setFollowUsers] = useState([])
   const [nextUsers, setNextUsers] = useState([])
-
-  const random = Math.random() * 100 | 0
+  const [sugUsers, setSugUsers] = useState([])
+  const random = Math.random() * 10 | 0
 
   useEffect(() => {
     api_client.get('/users')
       .then(response => {
-        console.log(response.data)
         setUserApi(response.data)
         setNextUsers(response.data[0])
       })
@@ -35,20 +31,42 @@ export default function Home() {
       })
   }, [])
 
+  useEffect(() => {
+    setFollowUsers(userApi.filter(user => user?.follow === true))
+  }, [userApi])
+
   const nextProfile = () => {
-    
     const next = userApi[random]
     setNextUsers(next)
+    setButton(false)
+    if ((next?.follow === false) && (next?.id !== 1)) {
+      const semRep = new Set(sugUsers)
+      setSugUsers([...semRep, next])
+    }
   }
 
-  const follow = () => {
-    setFollowUsers(nextUsers)    
+  const follow = (id) => {
+    api_client.patch(`/users/${id}`, { follow: true })
+      .then(() => {
+        api_client.get('/users').then(response => {
+          setUserApi(response.data)
+        })
+      }).catch(error => {
+        console.log(error)
+      })
+    setButton(true)
   }
 
-  console.log(nextUsers?.id)
-
-  const unfollow = () => {
-
+  const unfollow = (id) => {
+    api_client.patch(`/users/${id}`, { follow: false })
+      .then(() => {
+        api_client.get('/users').then(response => {
+          setUserApi(response.data)
+        })
+      }).catch(error => {
+        console.log(error)
+      })
+    setButton(false)
   }
 
   return (
@@ -66,7 +84,7 @@ export default function Home() {
           </div>
         </div>
         <div className="md:mx-36 xsm:mx-4 h-2/3 -mt-20">
-          <div className="flex flex-col h-2/3 border-2 rounded-md shadow-lg">
+          <div className="flex flex-col h-2/3 border-2 rounded-md shadow-lg" key={nextUsers?.id} >
             <div className="bg-cover bg-center h-1/2 flex items-center justify-center" style={{ backgroundImage: `url(${nextUsers?.photo}` }} >
               <div className="rounded-full -mb-10">
                 <img className="rounded-full md:h-52 md:w-52 xsm:h-40 xsm:w-40" src={nextUsers?.photo} alt="foto" />
@@ -74,10 +92,13 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center md:mt-12 h-1/2 md:gap-y-2">
               <div className="xsm:flex w-full xsm:flex-col items-center justify-center md:grid md:grid-cols-3 xsm:mt-5 md:mt-0">
-                {console.log(nextUsers)}
                 {nextUsers?.id !== 1 ?
                   <div className="text-white text-center col-start-2">
-                    <button onClick={() => follow()} className={`hover:opacity-90 w-36 h-10 rounded-md ${button ? `bg-red-600` : `bg-blue-600`}`}>{button ? 'Unfollow' : 'Follow'}</button>
+                    <button
+                      onClick={() => `${(nextUsers?.follow || button) ? unfollow(nextUsers?.id) : follow(nextUsers?.id)}`}
+                      className={`hover:opacity-90 w-36 h-10 rounded-md ${(nextUsers?.follow || button) ? `bg-red-600` : `bg-blue-600`}`}>
+                      {(nextUsers?.follow || button) ? 'Unfollow' : 'Follow'}
+                    </button>
                   </div>
                   : <div className="text-white flex items-center justify-center col-start-2">
                     <p className="bg-green-600 flex w-36 h-10 rounded-md  items-center justify-center">Meu perfil</p>
@@ -136,12 +157,12 @@ export default function Home() {
           <div className="pt-6 pb-20 w-full xsm:max-w-sm md:max-w-none ">
             <p className="text-2xl">Sugestões para você</p>
             <div className="pt-3 flex flex-row gap-x-4 snap-mandatory snap-x overflow-scroll">
-              <Slide user={userApi} />
+              <Slide sugUsers={sugUsers} follow={follow} />
             </div>
           </div>
         </div>
       </div>
-      {dropdown ? <Dropdown unfollow={unfollow} /> : null}
+      {dropdown ? <Dropdown followUsers={followUsers} unfollow={unfollow} /> : null}
     </>
   )
 }
