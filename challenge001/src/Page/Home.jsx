@@ -18,7 +18,7 @@ export default function Home() {
   const [followUsers, setFollowUsers] = useState([])
   const [nextUsers, setNextUsers] = useState([])
   const [sugUsers, setSugUsers] = useState([])
-  const random = Math.random() * 10 | 0
+  const random = Math.random() * 100 | 0
 
   useEffect(() => {
     api_client.get('/users')
@@ -33,6 +33,7 @@ export default function Home() {
 
   useEffect(() => {
     setFollowUsers(userApi.filter(user => user?.follow === true))
+    setSugUsers(userApi.filter(user => user?.follow === false))
   }, [userApi])
 
   const nextProfile = () => {
